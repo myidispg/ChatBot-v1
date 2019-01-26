@@ -56,6 +56,7 @@ final_model = LogisticRegression(C=0.05)
 final_model.fit(X, target)
 print ("Final Accuracy: %s" 
        % accuracy_score(target, final_model.predict(X_test)))
+
 # Final Accuracy: 0.88128
 
 
