@@ -31,3 +31,11 @@ today = datetime(year=2019, month=1, day=28)
 
 print(f"{today:%d %B %Y}")
 today
+
+# Working with text files
+%%writefile test.txt
+Hello, this is a quick text file.
+This is the second file of the line.
+
+myfile = open('test.txt')
+myfile.read()
