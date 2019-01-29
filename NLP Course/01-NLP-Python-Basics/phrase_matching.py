@@ -46,3 +46,22 @@ matcher.add('Solarpower', None, pattern1, pattern2)
 doc2 = nlp(u'Solar--pwer is solarpower yay.')
 
 found_matches = matcher(doc2)
+
+from spacy.matcher import PhraseMatcher
+
+matcher = PhraseMatcher(nlp.vocab)
+
+with open('../UPDATED_NLP_COURSE/TextFiles/reaganomics.txt') as f:
+    doc3 = nlp(f.read())
+    
+phrase_list = ['voodooeconomics', 'supply-side economics', 'trickle-down economics', 'free-market economics']
+phrase_patterns = [nlp(text) for text in phrase_list]
+
+matcher.add('EconMatcher', None, *phrase_patterns)
+
+found_matches = matcher(doc3)
+
+for match_id, start, end in found_matches:
+    string_id = nlp.vocab.strings[match_id]
+    span = doc[start:end]
+    print(match_id, string_id, start, end, span.text)
