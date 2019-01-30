@@ -45,8 +45,32 @@ doc[2].pos_
 
 for k,v in sorted(POS_counts.items()):
     print(f'{k}. {doc.vocab[k].text:{5}}: {v}')
-
+    
+# Count the different fine-grained tags:
 TAG_counts = doc.count_by(spacy.attrs.TAG)
 
 for k,v in sorted(TAG_counts.items()):
     print(f'{k}. {doc.vocab[k].text:{5}}: {v}')
+    
+# Count the different dependencies:
+DEP_counts = doc.count_by(spacy.attrs.DEP)
+
+for k,v in sorted(DEP_counts.items()):
+    print(f'{k}. {doc.vocab[k].text:{4}}: {v}')
+    
+# --------VISUALISATION---------------------
+
+from spacy import displacy
+displacy.serve(doc, style='dep')
+
+options = {'distance': 110, 'compact': True, 'color': 'yellow', 'bg': '#09a3d5', 'font': 'Times'}
+           
+displacy.serve(doc, style='dep', options=options)
+
+
+doc2 = nlp(u"This is a sentence. This is another, possibly longer sentence.")
+# Create spans from Doc.sents:
+spans = list(doc2.sents)
+displacy.serve(spans, style='dep', options={'distance': 110})
+options = {'distance': 110, 'compact': 'True', 'color': 'yellow', 'bg': '#09a3d5', 'font': 'Times'}
+displacy.serve(doc, style='dep', options=options)
