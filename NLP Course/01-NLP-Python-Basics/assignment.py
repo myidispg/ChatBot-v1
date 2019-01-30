@@ -44,7 +44,7 @@ for match_id, start, end in found_matches:
     span = doc[start-8: end+8]
     print(span.text, '\n')
 
-# Print the sentence of each match
+# Print the sentence of each match3
 for match_id, start, end in found_matches:
     for sent in sentences:
         if end < sent.end:
