@@ -93,3 +93,26 @@ for chunk in doc.noun_chunks:
     print(chunk.text+' - '+chunk.root.text+' - '+chunk.root.dep_+' - '+chunk.root.head.text)
     
 len(list(doc.noun_chunks))
+
+# ------Visualizing ----------------
+from spacy import displacy
+doc = nlp(u'Over the last quarter Apple sold nearly 20 thousand iPods for a profit of $6 million. '
+         u'By contrast, Sony sold only 7 thousand Walkman music players.')
+
+displacy.serve(doc, style='ent')
+
+# Visualize line by line
+for sent in doc.sents:
+    displacy.serve(nlp(sent.text), style='ent')
+    
+# Viewing Specific Entities
+options = {'ents': ['ORG', 'PRODUCT']}
+
+displacy.serve(doc, style='ent', options=options)
+
+# Customizing Colors and Effects
+colors = {'ORG': 'linear-gradient(90deg, #aa9cfc, #fc9ce7)', 'PRODUCT': 'radial-gradient(yellow, green)'}
+
+options = {'ents': ['ORG', 'PRODUCT'], 'colors':colors}
+
+displacy.serve(doc, style='ent', options=options)
