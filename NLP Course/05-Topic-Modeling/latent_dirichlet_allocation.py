@@ -47,16 +47,16 @@ for index in top_ten_words:
     print(cv.get_feature_names()[index])    
 
 # Grab the highest probablity words per topic
-for index, topic in enumerate(LDA.components_):
-    print(f"The top 15 words for topic #{index} are- ")
-    print([cv.get_feature_names()[i] for i in topic.argsort()[15:]])
+for index,topic in enumerate(LDA.components_):
+    print(f'THE TOP 15 WORDS FOR TOPIC #{index}')
+    print([cv.get_feature_names()[i] for i in topic.argsort()[-15:]])
     print('\n')
     
 # Attaching Discovered Topic Labels to Original Articles
 dtm
 dtm.shape
 len(npr)
-topic_results = LDA.transform(npr)
+topic_results = LDA.transform(dtm)
 topic_results.shape # Result is 11992x7 => Number of docs x Number of topics
 topic_results[0].argmax() # this shows the topic our first article belongs to.
 
