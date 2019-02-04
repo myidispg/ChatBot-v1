@@ -56,18 +56,41 @@ sequences = np.array(sequences)
 
 # Creating an LSTM based model
 
+import keras
+from keras.models import Sequential
+from keras.layers import Dense,LSTM,Embedding
+from keras.utils import to_categorical
 
+# Split to train and test set
 
+X = sequences[:,:-1]
+y = sequences[:,-1]
 
+y = to_categorical(y, num_classes=vocabulary_size+1)
+seq_len = X.shape[1]
 
+def create_model(vocabulary_size, seq_len):
+    model = Sequential()
+    model.add(Embedding(vocabulary_size, seq_len, input_length=seq_len))
+    model.add(LSTM(150, return_sequences=True))
+    model.add(LSTM(150))
+    model.add(Dense(150, activation='relu'))
+    model.add(Dense(vocabulary_size, activation='softmax'))
+    
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.summary()
+    return model
 
+model = create_model(vocabulary_size+1, seq_len)
 
+from pickle import dump,load
+# fit model
+model.fit(X, y, batch_size=128, epochs=300,verbose=1)
 
-
-
-
-
-
+# save the model to file
+model.save('moby_dick_epochBIG.h5')
+# save the tokenizer
+dump(tokenizer, open('moby_dick_tokenizer_epochBIG', 'wb'))
 
 
 
