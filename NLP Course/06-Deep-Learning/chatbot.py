@@ -150,9 +150,20 @@ print(model.summary())
 # train
 history = model.fit([inputs_train, queries_train], answers_train,batch_size=32,epochs=120,validation_data=([inputs_test, queries_test], answers_test))
 
+filename = 'chatbot_120_epochs.h5'
+model.save(filename)
 
-
-
+import matplotlib.pyplot as plt
+%matplotlib inline
+print(history.history.keys())
+# summarize history for accuracy
+plt.plot(history.history['acc'])
+plt.plot(history.history['val_acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
 
 
 
