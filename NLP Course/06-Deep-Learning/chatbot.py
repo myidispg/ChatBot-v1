@@ -165,17 +165,51 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
+# Evaluating on Given Test Set
+model.load_weights(filename)
 
+pred_results = model.predict(([inputs_test, queries_test]))
 
+story =' '.join(word for word in test_data[0][0])
+print(story)
 
+query = ' '.join(word for word in test_data[0][1])
+print(query)
 
+print("True Test Answer from Data is:",test_data[0][2])
 
+#Generate prediction from model
+val_max = np.argmax(pred_results[0])
 
+for key, val in tokenizer.word_index.items():
+    if val == val_max:
+        k = key
 
+print("Predicted answer is: ", k)
+print("Probability of certainty was: ", pred_results[0][val_max])
 
+# Writing Your Own Stories and Questions
+# Remember to use words only from the existing vocab
 
+# Note the whitespace of the periods
+my_story = "John left the kitchen . Sandra dropped the football in the garden ."
+my_story.split()
 
+my_question = "Is the football in the garden ?"
 
+my_question.split()
 
+mydata = [(my_story.split(),my_question.split(),'yes')]
 
+my_story,my_ques,my_ans = vectorize(mydata)
 
+pred_results = model.predict(([ my_story, my_ques]))
+#Generate prediction from model
+val_max = np.argmax(pred_results[0])
+
+for key, val in tokenizer.word_index.items():
+    if val == val_max:
+        k = key
+
+print("Predicted answer is: ", k)
+print("Probability of certainty was: ", pred_results[0][val_max])
