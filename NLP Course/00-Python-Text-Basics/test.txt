@@ -1,2 +1,0 @@
-Hello, this is a quick text file.
-This is the second file of the line.
