@@ -139,4 +139,16 @@ emojifier.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['a
 emojifier.fit(x_train_indices, y_train_one_hot, epochs = 100, batch_size = 16, shuffle=True, 
                                callbacks=[reduce_lr])
 
+# Testing the model
+x_test_indices = sentences_to_indices(x_test, word_to_index, max_len=maxWords)
+y_test_one_hot = pd.get_dummies(y_test)
+loss, acc = emojifier.evaluate(x_test_indices, y_test_one_hot)
+print()
+print("Test accuracy = ", acc)
 
+pred = emojifier.predict(x_test_indices)
+for i in range(len(x_test)):
+    x = x_test_indices
+    num = np.argmax(pred[i])
+    if(num != y_test[i]):
+        print(f'Expected emoji: {label_to_emoji(y_test[i])}  prediction:  {x_test[i]}  {label_to_emoji(num).strip()}')
