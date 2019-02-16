@@ -53,3 +53,31 @@ print('Maximum words in sentence are:',maxWords)
 # Convert Y to one-hot vectors
 y_train_one_hot = pd.get_dummies(y_train)
 print(y_train_one_hot.shape)
+
+# Use glove vectors for representing the words in the sentences.
+# The downloaded files encodign files are in a seperate directory
+def read_glove_vecs(glove_file):
+    with open(glove_file, 'r') as f:
+        words = set() # ensure unique words
+        word_to_vec_map = {} # this will map words to vectors
+        for line in f:
+            line = line.strip().split()
+            curr_word = line[0]
+            words.add(curr_word)
+            word_to_vec_map[curr_word] = np.array(line[1:], dtype=np.float64)
+            
+        i = 1
+        words_to_index = {} # dictionary mapping words to their index in the dictionary
+        index_to_words = {}   # dictionary mapping index to the word in the dictionary
+        for w in sorted(words):
+            words_to_index[w] = i
+            index_to_words[i] = w
+            i += 1
+        return words_to_index, index_to_words, word_to_vec_map
+    
+word_to_index, index_to_word, word_to_vec_map = read_glove_vecs('../Datasets/glove-global-vectors-for-word-representation/glove.6B.100d.txt')
+        
+
+
+
+
