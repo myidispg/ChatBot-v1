@@ -77,7 +77,66 @@ def read_glove_vecs(glove_file):
     
 word_to_index, index_to_word, word_to_vec_map = read_glove_vecs('../Datasets/glove-global-vectors-for-word-representation/glove.6B.100d.txt')
         
+# Initially, keras will be used for implementing LSTM. Later, this will be replaced by Tensorflow model
 
+# The below function creates a Keras embedding layer with the downloaded embedding weights
+def pretrained_embedding_layer(word_to_vec_map, word_to_index):
+    vocab_len = len(word_to_index) + 1 # +1 for keras
+    emb_dim = word_to_vec_map['happy'].shape[0] # dimensions of embeddings
+    
+    emb_matrix = np.zeros((vocab_len, emb_dim)) # initialize with zeros
+    # Set each row "index" of the embedding matrix to be the word vector representation of the "index"th word of the vocabulary
+    for word, index in word_to_index.items():
+        emb_matrix[index, :] = word_to_vec_map[word]
+        
+    # Define keras embedding layer with the correct output/input sizes
+    embedding_layer = Embedding(vocab_len, emb_dim, trainable=False)
+    # Build the embedding layer
+    embedding_layer.build((None,))
+    
+    # Set the weights of the embedding layer to the embedding matrix. Your layer is now pretrained.
+    embedding_layer.set_weights([emb_matrix])
+    
+    return embedding_layer
 
+# We now need to convert all training sentences into lists of indices, and then zero-pad all these lists so that their length is the length of the longest sentence.
+def sentences_to_indices(x, word_to_index, max_len):
+    m = x.shape[0] # number of training samples
+    x_indices = np.zeros((m, max_len))
+    for i in range(m):
+        sentence_words = (x[i].lower()).split() # split sentence into words
+        j = 0
+        for w in sentence_words:
+            x_indices[i, j] = word_to_index[w]
+            j = j + 1
+            
+    return x_indices
+
+x_train_indices = sentences_to_indices(x_train, word_to_index, maxWords)
+
+# EMOJIFIER MODEL
+def emojify(input_shape, word_to_vec_map, word_to_index):
+    sentence_indices = Input(shape=input_shape, dtype='int32')
+    embedding_layer = pretrained_embedding_layer(word_to_vec_map, word_to_index)
+    embeddings = embedding_layer(sentence_indices)
+    
+    X = LSTM(128, return_sequences=True)(embeddings)
+    X = Dropout(0.5)(X)
+    X = LSTM(128, return_sequences=False)(X)
+    X = Dropout(0.5)(X)
+    X = Dense(5, activation='softmax')(X)
+    X = Activation('softmax')(X)
+    
+    model = Model(inputs=sentence_indices, outputs=X)
+    
+    return model
+
+emojifier = emojify((maxWords,), word_to_vec_map, word_to_index)
+emojifier.summary()
+    
+reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.5, patience=3, min_lr=0.00001, verbose=1)
+emojifier.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+emojifier.fit(x_train_indices, y_train_one_hot, epochs = 100, batch_size = 16, shuffle=True, 
+                               callbacks=[reduce_lr])
 
 
