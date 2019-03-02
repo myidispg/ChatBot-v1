@@ -1,4 +1,6 @@
 sentiment-analysis/dataset/*
+spam-detection/spambase-dataset/*
+text_generation/training_checkpoints/*
 NLP Course/*
 *.zip
 *yml
