@@ -62,15 +62,16 @@ class SimpleRNN:
                 n_steps=Ei.shape[0]
             )
         
+        print(f'y.shape: {y.shape}')
         py_x = y[:, 0, :]
         prediction = T.argmax(py_x, axis=1)
         
         cost = -T.mean(T.log(py_x[T.arange(thY.shape[0]), thY]))
-        grads = T.grad(cost, self.params)
+        grads = T.grad(cost, self.params) # returns gradient of cost with all params
         dparams = [theano.shared(p.get_value()*0) for p in self.params]
         
         updates = [
-                (p, p + mu*dp -  learning_rate*g) for p, dp, g in zip(self.params, dparams, grads)
+                (p, p + mu*dp - learning_rate*g) for p, dp, g in zip(self.params, dparams, grads)
             ] + [
                     (dp, mu*dp - learning_rate*g) for dp, g in zip(dparams, grads)
                     ]
@@ -153,10 +154,10 @@ class SimpleRNN:
         py_x = y[:, 0, :]
         prediction = T.argmax(py_x, axis=1)
         
-        self.predict_op = theano.function(input=[thX], outputs=prediction, allow_input_downcast=True)
+        self.predict_op = theano.function(inputs=[thX], outputs=prediction, allow_input_downcast=True)
         
     def generate(self, pi, word2idx):
-        idx2word = {v:k for k, v in word2idx.iteritems()}
+        idx2word = {word2idx[k]:k for k in word2idx}
         V = len(pi)
         
         n_lines = 0
@@ -170,12 +171,13 @@ class SimpleRNN:
             
             if P > 1:
                 word = idx2word[P]
+                print(word, end=" ")
             elif P == 1:
                 n_lines += 1
                 print('')
                 if n_lines < 4:
                     X = [np.random.choice(V, p=pi) ]
-                    
+                    print(idx2word[X[0]], end=" ")
         
 def train_poetry():
     sentences, word2idx = get_robert_frost()
@@ -185,7 +187,7 @@ def train_poetry():
     
 def generate_poetry():
     sentences, word2idx = get_robert_frost()
-    rnn = SimpleRNN.load('poetry_model/RNN_D30_M30_epochs2000_relu.npz', T.nnet.relu)
+    rnn = SimpleRNN.load('RNN_D30_M30_epochs200_relu.npz', T.nnet.relu)
     
     # Create the initial word distribution.
     V = len(word2idx)
@@ -197,3 +199,4 @@ def generate_poetry():
     rnn.generate(pi, word2idx)
     
 train_poetry()
+generate_poetry()
