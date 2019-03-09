@@ -21,7 +21,7 @@ class SimpleRNN:
         self.V = V # Vocabulary size
         
     def fit(self, X, learning_rate=10e-1, mu=0.99, reg=1.0, activation=T.tanh, epochs=500, show_fig = False):
-        N = len(X)
+        N = len(X) # Number of training samples.
         D = self.D
         M = self.M
         V = self.V
@@ -74,7 +74,7 @@ class SimpleRNN:
             ] + [
                     (dp, mu*dp - learning_rate*g) for dp, g in zip(dparams, grads)
                     ]
-        self.predict_op = theano.function(input=[thX], outputs=prediction)
+        self.predict_op = theano.function(inputs=[thX], outputs=prediction)
         self.train_op = theano.function(inputs=[thX, thY], outputs=[cost, prediction], updates=updates)
         
         costs = []
@@ -82,7 +82,7 @@ class SimpleRNN:
         
         for i in range(epochs):
             X = shuffle(X)
-            n_corrct = 0
+            n_correct = 0
             cost = 0
             for j in range(N):
                 input_sequence = [0] + X[j]
@@ -102,38 +102,38 @@ class SimpleRNN:
             plt.show()
             
             
-        def save(self, filename):
-            np.savez(filename, *[p.get_value() for p in self.params])
+    def save(self, filename):
+        np.savez(filename, *[p.get_value() for p in self.params])
             
-        @staticmethod
-        def load(filename, activation):
-            npz = np.load(filename)
-            We = npz['arr_0']
-            Wx = npz['arr_1']
-            Wh = npz['arr_2']
-            bh = npz['arr_3']
-            h0 = npz['arr_4']
-            Wo = npz['arr_5']
-            bo = npz['arr_6']
-            V, D = We.shape
-            _, M = Wx.shape
-            rnn = SimpleRNN(D, M, V)
-            rnn.set_params(We, Wx, Wh, bh, h0, Wo, bo, activation)
-            return rnn
+    @staticmethod
+    def load(filename, activation):
+        npz = np.load(filename)
+        We = npz['arr_0']
+        Wx = npz['arr_1']
+        Wh = npz['arr_2']
+        bh = npz['arr_3']
+        h0 = npz['arr_4']
+        Wo = npz['arr_5']
+        bo = npz['arr_6']
+        V, D = We.shape
+        _, M = Wx.shape
+        rnn = SimpleRNN(D, M, V)
+        rnn.set_params(We, Wx, Wh, bh, h0, Wo, bo, activation)
+        return rnn
     
-        def set_params(self, We, Wx, Wh, bh, h0, Wo, bo, activation):
-            self.f = activation
+    def set_params(self, We, Wx, Wh, bh, h0, Wo, bo, activation):
+        self.f = activation
+        
+        self.We = theano.shared(We)
+        self.Wx = theano.shared(Wx)
+        self.Wh = theano.shared(Wh)
+        self.bh = theano.shared(bh)
+        self.h0 = theano.shared(h0)
+        self.Wo = theano.shared(Wo)
+        self.bo = theano.shared(bo)
+        self.params = [self.We, self.Wx, self.Wh, self.bh, self.h0, self.Wo, self.bo]
             
-            self.We = theano.shared(We)
-            self.Wx = theano.shared(Wx)
-            self.Wh = theano.shared(Wh)
-            self.bh = theano.shared(bh)
-            self.h0 = theano.shared(h0)
-            self.Wo = theano.shared(Wo)
-            self.bo = theano.shared(bo)
-            self.params = [self.We, self.Wx, self.Wh, self.bh, self.h0, self.Wo, self.bo]
-            
-            thX = T.ivector('X') # sequence of indexes.
+        thX = T.ivector('X') # sequence of indexes.
         Ei = self.We[thX] # returns a TxD matrix
         thY = T.ivector('Y')
         
@@ -148,11 +148,11 @@ class SimpleRNN:
                 outputs_info=[self.h0, None],
                 sequences=Ei,
                 n_steps=Ei.shape[0]
-            )
+            )   
         
         py_x = y[:, 0, :]
         prediction = T.argmax(py_x, axis=1)
-                    
+        
         self.predict_op = theano.function(input=[thX], outputs=prediction, allow_input_downcast=True)
         
     def generate(self, pi, word2idx):
@@ -165,10 +165,9 @@ class SimpleRNN:
         print(idx2word[X[0]])
         
         while n_lines < 4:
-            P = self.predict_op(X)
-            X = np.concatenate([X, P])
+            P = self.predict_op(X)[-1]
+            X += [P]
             
-            P = P[-1]
             if P > 1:
                 word = idx2word[P]
             elif P == 1:
@@ -179,4 +178,22 @@ class SimpleRNN:
                     
         
 def train_poetry():
-    pass       
+    sentences, word2idx = get_robert_frost()
+    rnn = SimpleRNN(30, 30, len(word2idx))
+    rnn.fit(sentences, learning_rate=10e-5, show_fig=True, activation=T.nnet.relu, epochs=200)
+    rnn.save('RNN_D30_M30_epochs2_relu.npz')
+    
+def generate_poetry():
+    sentences, word2idx = get_robert_frost()
+    rnn = SimpleRNN.load('poetry_model/RNN_D30_M30_epochs2000_relu.npz', T.nnet.relu)
+    
+    # Create the initial word distribution.
+    V = len(word2idx)
+    pi = np.zeros(V) # creates a vector of length V.
+    for sentence in sentences:
+        pi[sentence[0]] += 1
+    pi /= pi.sum()
+    
+    rnn.generate(pi, word2idx)
+    
+train_poetry()
