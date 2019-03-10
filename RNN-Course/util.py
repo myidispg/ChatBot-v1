@@ -114,7 +114,7 @@ def my_tokenizer(s):
     return s.split()
 
 def get_wikipedia_data(n_files, n_vocab, by_paragraph=False):
-    prefix = '../../Datasets/Wikipedia_dataset_RNN_Course'
+    prefix = '../../Datasets/Wikipedia_dataset_RNN_Course/'
 
     if not os.path.exists(prefix):
         print("Are you sure you've downloaded, converted, and placed the Wikipedia data into the proper folder?")

@@ -80,6 +80,7 @@ class LSTM:
             o_t = T.nnet.sigmoid(x_t.dot(self.Wxo) + h_t1.dot(self.Wxo) + c_t.dot(self.Wco) + self.bo)
             h_t = o_t * T.tanh(c_t)
             return h_t, c_t
+        
         def output(self, x):
             [h, c] = theano.scan(
                     fn=recurrence,
