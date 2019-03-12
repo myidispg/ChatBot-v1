@@ -63,7 +63,7 @@ class RNN:
                 allow_input_downcast=True
                 )
         
-        cost = -T.mean(T.log(py_x[T.arange(thY.shape[0], thY)]))
+        cost = -T.mean(T.log(py_x[T.arange(thY.shape[0]), thY]))
         grads= T.grad(cost, self.params)
         dparams = [theano.shared(p.get_value()*0) for p in self.params]
         
@@ -133,5 +133,34 @@ def train_wikipedia(we_file='word_embeddings.npy', w2i_file='wikipedia_word2idx.
         json.dump(word2idx, f)
     
 
+def find_analogies(w1, w2, w3, we_file='word_embeddings.npy', w2i_file='wikipedia_word2idx.json'):
+    We = np.load(we_file)
+    with open(w2i_file) as f:
+        word2idx = json.load(f)
+        
+    king = We[word2idx[w1]]
+    man = We[word2idx[w2]]
+    woman = We[word2idx[w3]]
+    v0 = king - man + woman
+    
+    def dist1(a, b):
+        return np.linalg.norm(a-b)
+    
+    def dist2(a, b):
+        return 1-a.dot(b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    
+    for dist, name in [(dist1, 'Euclidean'), (dist2, 'cosine')]:
+        min_dist = float('inf')
+        best_word = ''
+        for word, idx in iter(word2idx):
+            if word not in (w1, w2, w3):
+                v1 = We[idx]
+                d = dist(v0, v1)
+                if d < min_dist:
+                    min_dist = d
+                    best_word = word
+        print(f'Closest match by {name} distance: {best_word}\n{w1}-{w2}={best_word}-{w3}')
+        
+train_wikipedia()
 
             
