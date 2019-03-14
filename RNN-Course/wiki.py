@@ -49,7 +49,7 @@ class RNN:
             self.params += ru.params
             
         thX = T.ivector('X')
-        thY = T.iVector('Y')
+        thY = T.ivector('Y')
         
         Z = self.We[thX]
         for ru in self.hidden_layers:
@@ -123,7 +123,7 @@ class RNN:
             
 def train_wikipedia(we_file='word_embeddings.npy', w2i_file='wikipedia_word2idx.json', RecurrentUnit=GRU):
     sentences, word2idx = get_wikipedia_data(n_files=100, n_vocab=2000)
-    print('Finished retrieving date!')
+    print('Finished retrieving data!')
     print(f'vocab size: {len(word2idx)}, number of sentences: {len(sentences)}')
     rnn = RNN(50, [50], len(word2idx))
     rnn.fit(sentences, learning_rate=10e-6, epochs=10, show_fig=True, activation=T.nnet.relu)
@@ -143,7 +143,7 @@ def find_analogies(w1, w2, w3, we_file='word_embeddings.npy', w2i_file='wikipedi
     woman = We[word2idx[w3]]
     v0 = king - man + woman
     
-    def dist1(a, b):
+    def dist1(a, b):    
         return np.linalg.norm(a-b)
     
     def dist2(a, b):
