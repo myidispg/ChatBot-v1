@@ -55,7 +55,6 @@ class SimpleRNN:
         
         # create the simple RNN unit
         rnn_unit = BasicRNNCell(num_units = self.M, activation=self.f)
-        
         # get rnn cell output
         outputs, states = get_rnn_output(rnn_unit, sequenceX, dtype=tf.float32)
         
@@ -78,7 +77,57 @@ class SimpleRNN:
         
         costs = []
         n_batches = N // batch_size
+        init = tf.global_variables_initializer()
+        with tf.Session() as session:
+            session.run(init)
+            for i in range(epochs):
+                X, Y = shuffle(X, Y)
+                n_correct = 0
+                cost = 0
+                
+                for j in range(n_batches):
+                    Xbatch = X[j*batch_size:(j+1)*batch_size]
+                    Ybatch = Y[j*batch_size:(j+1)*batch_size]
+                    
+                    _, c, p = session.run([train_op, cost_op, predict_op],
+                                          feed_dict={tfX: Xbatch, tfY: Ybatch})
+                    cost += c
+                    for b in range(batch_size):
+                        idx = (b+1)*T - 1 
+                        n_correct += (p[idx] == Ybatch[b][-1])
+                if i % 10 == 0:
+                  print("i:", i, "cost:", cost, "classification rate:", (float(n_correct)/N))
+                if n_correct == N:
+                  print("i:", i, "cost:", cost, "classification rate:", (float(n_correct)/N))
+                  break
+                costs.append(cost)
+
+        if show_fig:
+          plt.plot(costs)
+          plt.show()
     
+                    
     
-X, Y = all_parity_pairs_with_sequence_labels(10)
-x = x2sequence(X, 10, 1, 1100)
+
+def parity(B=12, learning_rate=1., epochs=1000):
+  X, Y = all_parity_pairs_with_sequence_labels(B)
+
+  rnn = SimpleRNN(4)
+  rnn.fit(X, Y,
+    batch_size=len(Y),
+    learning_rate=learning_rate,
+    epochs=epochs,
+    activation=tf.nn.sigmoid,
+    show_fig=False
+  )
+
+parity()
+
+
+
+
+
+
+
+#X, Y = all_parity_pairs_with_sequence_labels(10)
+#x = x2sequence(X, 10, 1, 1100)
