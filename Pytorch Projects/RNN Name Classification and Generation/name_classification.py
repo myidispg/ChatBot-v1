@@ -54,9 +54,10 @@ n_categories = len(all_categories)
 # Turning Names into Tensors
 """
 Now that we have all the names organized, we need to turn them into Tensors to make any use of them.
-To represent a single letter, we use a “one-hot vector” of size <1 x n_letters>. A one-hot vector is filled with 0s except for a 1 at index of the current letter, e.g. "b" = <0 1 0 0 0 ...>.
+To represent a single letter, we use a “one-hot vector” of size <1 x n_letters>.
+A one-hot vector is filled with 0s except for a 1 at index of the current letter, e.g. "b" = <0 1 0 0 0 ...>.
 To make a word we join a bunch of those into a 2D matrix <line_length x 1 x n_letters>.
-That extra 1 dimension is because PyTorch assumes everything is in batches - we’re just using a batch size of 1 here.
+The extra dimension is because PyTorch assumes everything is in batches - we’re using a batch size of 1 here.
 """
 import torch
 
