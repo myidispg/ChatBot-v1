@@ -118,7 +118,7 @@ def parity(B=12, learning_rate=1., epochs=1000):
     learning_rate=learning_rate,
     epochs=epochs,
     activation=tf.nn.sigmoid,
-    show_fig=False
+    show_fig=True
   )
 
 parity()

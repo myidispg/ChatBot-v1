@@ -20,19 +20,19 @@ class SimpleRNN:
         self.M = M
         
     def fit(self, X, Y, learning_rate=10e-1, mu=0.99, reg=1.0, activation=T.tanh, epochs=100, show_fig=False):
-        D = X[0].shape[1]
-        K = len(set(Y.flatten())) # Y is a sequence of targets.
-        N = len(Y)
+        D = X[0].shape[1] # Dimensions = 1
+        K = len(set(Y.flatten())) # Y is a sequence of targets. It is the number of unique values in the target.
+        N = len(Y) # number of targets.
         M = self.M
         self.f = activation
         
         # initialize the weigths
-        Wx = init_weight(D, M)
-        Wh = init_weight(M,M)
-        bh = np.zeros(M)
-        h0 = np.zeros(M)
-        Wo = init_weight(M, K)
-        bo = np.zeros(K)
+        Wx = init_weight(D, M) # 1 x 4
+        Wh = init_weight(M,M) # 4x4
+        bh = np.zeros(M) # 4
+        h0 = np.zeros(M) # 4
+        Wo = init_weight(M, K) # 4 x 2 The output can be either of the distinct values of Y
+        bo = np.zeros(K) # 2
         
         self.Wx = theano.shared(Wx)
         self.Wh = theano.shared(Wh)
@@ -46,9 +46,10 @@ class SimpleRNN:
         thY = T.ivector('Y')
         
         def recurrence(x_t, h_t1):
+            # (4100x12x1 * 1*4 = 4100x12x4) + (4*4x4 = 4x4) + 4 
             # returns h(t), y(t)
             h_t = self.f(x_t.dot(self.Wx) + h_t1.dot(self.Wh) + self.bh)
-            y_t = T.nnet.softmax(h_t.dot(self.Wo) + self.bo)
+            y_t = T.nnet.softmax(h_t.dot(self.Wo) + self.bo) # 4100x12x4 + 
             return h_t, y_t
         
         [h, y], _ = theano.scan(
