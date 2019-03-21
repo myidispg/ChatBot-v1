@@ -120,6 +120,7 @@ The CBOW model is as follows. Given a target word wi and an N context window
 where qw is the embedding for word w.
 """
 
+EMBEDDING_DIM = 10
 CONTEXT_SIZE = 2  # 2 words to the left, 2 to the right
 raw_text = """We are about to study the idea of a computational process.
 Computational processes are abstract beings that inhabit computers.
@@ -138,8 +139,6 @@ for i in range(2, len(raw_text) - 2):
     target = raw_text[i]
     data.append((context, target))
     
-    
-    
 class CBOW(nn.Module):
     def __init__(self, vocab_size, embedding_dim, context_size):
         super(CBOW, self).__init__()
@@ -148,9 +147,47 @@ class CBOW(nn.Module):
         self.linear2 = nn.Linear(128, vocab_size)
         
     def forward(self, inputs):
-        print(inputs)
+#        print(inputs)
         embeds = self.embeddings(inputs).view((1, -1))
         out = F.relu(self.linear1(embeds))
         out = self.linear2(out)
         log_probs = F.log_softmax(out, dim=1)
         return log_probs
+    
+
+losses = []
+loss_function = nn.NLLLoss()
+model = CBOW(len(vocab), EMBEDDING_DIM, CONTEXT_SIZE)
+optimizer = optim.SGD(model.parameters(), lr=0.001)
+
+for epoch in range(1000):
+    print(f'Epoch: {epoch}')
+    total_loss = 0
+    for context, target in data:
+        
+        # Step 1. Prepare the inputs to be passed to the model (i.e, turn the words
+        # into integer indices and wrap them in tensors)
+        context_idxs = torch.tensor([word_to_idx[w] for w in context], dtype = torch.long)
+        
+        # Step 2 recall that torch *accumulates* gradients. Before passing in a
+        # new instance, you need to zero out the gradients from the old
+        # instance
+        model.zero_grad()
+        
+        # Step 3. Run the forward pass, getting log probabilities over next
+        # words
+        log_probs = model(context_idxs)
+        
+        # Step 4. Compute your loss function. (Again, Torch wants the target
+        # word wrapped in a tensor)
+        loss = loss_function(log_probs, torch.tensor([word_to_idx[target]], dtype=torch.long))
+        
+        # Step 5. Do the backward pass and update the gradient
+        loss.backward()
+        optimizer.step()
+
+        # Get the Python number from a 1-element Tensor by calling tensor.item()
+        total_loss += loss.item()
+    losses.append(total_loss)
+print(losses)  # The loss decreased every iteration over the training data!
+        
