@@ -105,7 +105,7 @@ with torch.no_grad():
     print(tag_scores)
     
 for epoch in range(300):  # again, normally you would NOT do 300 epochs, it is toy data
-    print(f'Epoch: {epoch}+1')
+    print(f'Epoch: {epoch+1}')
     for sentence, tags in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
@@ -137,5 +137,4 @@ with torch.no_grad():
     # 1 is the index of maximum value of row 2, etc.
     # Which is DET NOUN VERB DET NOUN, the correct sequence!
     print(tag_scores)
-
 
