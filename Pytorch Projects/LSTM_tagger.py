@@ -66,11 +66,6 @@ for sent, tags in training_data:
 print(word_to_ix)
 tag_to_ix = {"DET": 0, "NN": 1, "V": 2}
 
-# These will usually be more like 32 or 64 dimensional.
-# We will keep them small, so we can see how the weights change as we train.
-EMBEDDING_DIM = 6
-HIDDEN_DIM = 6
-
 class LSTMTagger(nn.Module):
     
     def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size):
@@ -92,6 +87,12 @@ class LSTMTagger(nn.Module):
         tag_scores = F.log_softmax(tag_space, dim=1)
         return tag_scores
     
+    
+# These will usually be more like 32 or 64 dimensional.
+# We will keep them small, so we can see how the weights change as we train.
+EMBEDDING_DIM = 6
+HIDDEN_DIM = 6
+
 model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(tag_to_ix))
 loss_function = nn.NLLLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
