@@ -312,3 +312,10 @@ decoder = DecoderRNN(HIDDEN_DIM, output_lang.n_words).to(device)
 criterion = nn.NLLLoss()
 
 trainIters(encoder, decoder, 75000, print_every=5000)
+print(encoder.state_dict().keys())
+
+# Save the encoder and decoder network for reuse later.
+torch.save(encoder.state_dict(), 'encoder_seq2seq_without_attention.pth')
+print('Saved encoder model!')
+torch.save(decoder.state_dict(), 'decoder_seq2seq_without_attention.pth')
+print('Saved decoder model!')
