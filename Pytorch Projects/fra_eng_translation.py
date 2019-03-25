@@ -319,3 +319,13 @@ torch.save(encoder.state_dict(), 'encoder_seq2seq_without_attention.pth')
 print('Saved encoder model!')
 torch.save(decoder.state_dict(), 'decoder_seq2seq_without_attention.pth')
 print('Saved decoder model!')
+
+# Load the trained and saved model
+print('Loading the saved models')
+encoder = EncoderRNN(input_lang.n_words, HIDDEN_DIM).to(device)
+decoder = DecoderRNN(HIDDEN_DIM, output_lang.n_words).to(device)
+
+encoder.load_state_dict(torch.load('encoder_seq2seq_without_attention.pth'))
+print('Loaded encoder model!')
+decoder.load_state_dict(torch.load('decoder_seq2seq_without_attention.pth'))
+print('Loaded decoder model!')
