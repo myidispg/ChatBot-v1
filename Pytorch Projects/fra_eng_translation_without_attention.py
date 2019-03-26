@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar 22 11:29:30 2019
-https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html
+Created on Tue Mar 26 18:54:33 2019
+
 @author: myidispg
 """
 
@@ -144,23 +144,6 @@ class EncoderRNN(nn.Module):
     def initHidden(self):
         return torch.zeros(1, 1, self.hidden_size, device=device)
     
-"""
-This block of code shows that the embedding takes an input integer to generate a vector in the embedding space.
-This vector is for a single word. That vector is input into the GRU which returns the output and the hidden state.
-This can be repeated for each word of the sentence including the EOS.
-Then, the hidden state for the last word can serve as input for decoder until EOS is generated.
-The first input for the decoder is the SOS token.
-"""
-test_embedding = nn.Embedding(50, 4)
-test_embedded = test_embedding(torch.tensor([1], dtype=torch.long)).view(1, 1, -1)
-test_gru = nn.GRU(4, 4)
-output, hidden = test_gru(test_embedded)
-linear = nn.Linear(4, 50)
-softmax = nn.LogSoftmax(dim = 1)
-output = linear(output)
-output = softmax(output)
-output
-    
 class DecoderRNN(nn.Module):
     def __init__(self, hidden_size, output_size):
         super(DecoderRNN, self).__init__()
@@ -180,44 +163,7 @@ class DecoderRNN(nn.Module):
     
     def initHidden(self):
         return torch.zeros(1, 1, self.hidden_size, device=device)
-    
-class AttnDecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size, dropout_p=0.1, max_length=MAX_LENGTH):
-        super(AttnDecoderRNN, self).__init__()
-        self.hidden_size = hidden_size
-        self.output_size = output_size
-        self.dropout_p = dropout_p
-        self.max_length = max_length
 
-        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
-        self.attn = nn.Linear(self.hidden_size * 2, self.max_length)
-        self.attn_combine = nn.Linear(self.hidden_size * 2, self.hidden_size)
-        self.dropout = nn.Dropout(self.dropout_p)
-        self.gru = nn.GRU(self.hidden_size, self.hidden_size)
-        self.out = nn.Linear(self.hidden_size, self.output_size)
-
-    def forward(self, input, hidden, encoder_outputs):
-        embedded = self.embedding(input).view(1, 1, -1)
-        embedded = self.dropout(embedded)
-
-        attn_weights = F.softmax(
-            self.attn(torch.cat((embedded[0], hidden[0]), 1)), dim=1)
-        attn_applied = torch.bmm(attn_weights.unsqueeze(0),
-                                 encoder_outputs.unsqueeze(0))
-
-        output = torch.cat((embedded[0], attn_applied[0]), 1)
-        output = self.attn_combine(output).unsqueeze(0)
-
-        output = F.relu(output)
-        output, hidden = self.gru(output, hidden)
-
-        output = F.log_softmax(self.out(output[0]), dim=1)
-        return output, hidden, attn_weights
-
-    def initHidden(self):
-        return torch.zeros(1, 1, self.hidden_size, device=device)
-    
-    
 # TRAINING
 def indexesFromSentence(lang, sentence):
     return [lang.word2index[word] for word in sentence.split(' ')]
@@ -266,22 +212,19 @@ def train(input_tensor, output_tensor, encoder, decoder, encoder_optimizer, deco
     
     if use_teacher_forcing:
         for di in range(output_length):
-            decoder_output, decoder_hidden, decoder_attention = decoder(decoder_input, decoder_hidden, encoder_outputs)
+            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
             
             loss += criterion(decoder_output, output_tensor[di])
             decoder_input = output_tensor[di]  # Teacher forcing
     else:
         for di in range(output_length):
-            decoder_output, decoder_hidden, decoder_attention = decoder(decoder_input, decoder_hidden, encoder_outputs)
+            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach() # detach from history as input
-            
             loss += criterion(decoder_output, output_tensor[di])
             if decoder_input.item() == EOS_token:
                 break
-            
     loss.backward()
-    
     encoder_optimizer.step()
     decoder_optimizer.step()
     
@@ -365,16 +308,16 @@ EMBEDDING_DIM = 6
 HIDDEN_DIM = 256
 
 encoder = EncoderRNN(input_lang.n_words, HIDDEN_DIM).to(device)
-attn_decoder = AttnDecoderRNN(HIDDEN_DIM, output_lang.n_words, dropout_p = 0.1).to(device)
+decoder = DecoderRNN(HIDDEN_DIM, output_lang.n_words).to(device)
 criterion = nn.NLLLoss()
 
-trainIters(encoder, attn_decoder, 75000, print_every=5000)
+trainIters(encoder, decoder, 75000, print_every=5000)
 print(encoder.state_dict().keys())
 
 # Save the encoder and decoder network for reuse later.
-torch.save(encoder.state_dict(), 'encoder_seq2seq_with_attention.pth')
+torch.save(encoder.state_dict(), 'encoder_seq2seq_without_attention.pth')
 print('Saved encoder model!')
-torch.save(attn_decoder.state_dict(), 'decoder_seq2seq_with_attention.pth')
+torch.save(decoder.state_dict(), 'decoder_seq2seq_without_attention.pth')
 print('Saved decoder model!')
 
 # Load the trained and saved model
@@ -382,7 +325,7 @@ print('Loading the saved models')
 encoder = EncoderRNN(input_lang.n_words, HIDDEN_DIM).to(device)
 decoder = DecoderRNN(HIDDEN_DIM, output_lang.n_words).to(device)
 
-encoder.load_state_dict(torch.load('encoder_seq2seq_with_attention.pth'))
+encoder.load_state_dict(torch.load('encoder_seq2seq_without_attention.pth'))
 print('Loaded encoder model!')
-decoder.load_state_dict(torch.load('decoder_seq2seq_with_attention.pth'))
+decoder.load_state_dict(torch.load('decoder_seq2seq_without_attention.pth'))
 print('Loaded decoder model!')
