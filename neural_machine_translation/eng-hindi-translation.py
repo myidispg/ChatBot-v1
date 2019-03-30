@@ -23,6 +23,7 @@ class Lang:
         self.word2count = {}
         self.index2word = {0: "SOS", 1: "EOS"}
         self.n_words = 2
+        self.max_ent_length = 1
         
     def addSentence(self, sentence):
         for word in sentence.split(' '):
@@ -44,12 +45,44 @@ english_data_path = '../../Datasets/English-Hindi-IIT/parallel/IITB.en-hi.en'
 hindi_lines = open(hindi_data_path).read().strip().split('\n')
 english_lines = open(english_data_path).read().strip().split('\n')
 
-hindi_data = [(word for word in sentence.split(' ')) for sentence in hindi_lines]
+pairs = []
 
-hindi_data = []
+for hindi_sent, english_sent in zip(hindi_lines, english_lines):
+    pairs.append([hindi_sent, english_sent])
+    
+hindi_lang = Lang('hindi')
+english_lang = Lang('english')
 
-for sentence in hindi_lines:
-    word_sequence = ()
-    for word in sentence.split(' '):
-        word_sequence += tuple(word)
-    hindi_data.append(word_sequence)
+def addWordsToLang(lang, lines):
+    for line in lines:
+        lang.addSentence(line)
+    
+    return lang
+
+addWordsToLang(english_lang, english_lines)
+
+def create_pairs(lang1, lang2):
+    pairs = []
+
+    for lang1_sent, lang2_sent in zip(lang1, lang2):
+        pairs.append([lang1_sent, lang2_sent])
+        
+    return pairs
+
+def createLanguagesAndPairs(lang1_path, lang2_path, lang1, lang2):
+    print('Opening files and reading the sentences')
+    lang1_lines = open(hindi_data_path).read().strip().split('\n')
+    lang2_lines = open(english_data_path).read().strip().split('\n')
+    
+    print('Creating pairs...')
+    pairs = create_pairs(lang1_lines, lang2_lines)
+    
+    print('Adding words to languages')
+    lang1 = addWordsToLang(lang1, lang1_lines)
+    lang2 = addWordsToLang(lang1, lang1_lines)
+    
+    return pairs, lang1, lang2
+
+pairs, hindi_lang, english_lang = createLanguagesAndPairs(hindi_data_path, english_data_path, hindi_lang, english_lang)
+
+
