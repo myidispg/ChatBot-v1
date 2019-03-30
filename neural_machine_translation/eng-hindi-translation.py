@@ -23,9 +23,11 @@ class Lang:
         self.word2count = {}
         self.index2word = {0: "SOS", 1: "EOS"}
         self.n_words = 2
-        self.max_ent_length = 1
+        self.max_sent_length = 1
         
     def addSentence(self, sentence):
+        sent_length = len(sentence.split(' '))
+        self.max_sent_length = sent_length if sent_length > self.max_sent_length else self.max_sent_length        
         for word in sentence.split(' '):
             self.addWord(word)
     
@@ -42,14 +44,6 @@ class Lang:
 hindi_data_path = '../../Datasets/English-Hindi-IIT/parallel/IITB.en-hi.hi'
 english_data_path = '../../Datasets/English-Hindi-IIT/parallel/IITB.en-hi.en'
 
-hindi_lines = open(hindi_data_path).read().strip().split('\n')
-english_lines = open(english_data_path).read().strip().split('\n')
-
-pairs = []
-
-for hindi_sent, english_sent in zip(hindi_lines, english_lines):
-    pairs.append([hindi_sent, english_sent])
-    
 hindi_lang = Lang('hindi')
 english_lang = Lang('english')
 
@@ -58,8 +52,6 @@ def addWordsToLang(lang, lines):
         lang.addSentence(line)
     
     return lang
-
-addWordsToLang(english_lang, english_lines)
 
 def create_pairs(lang1, lang2):
     pairs = []
@@ -79,10 +71,33 @@ def createLanguagesAndPairs(lang1_path, lang2_path, lang1, lang2):
     
     print('Adding words to languages')
     lang1 = addWordsToLang(lang1, lang1_lines)
-    lang2 = addWordsToLang(lang1, lang1_lines)
+    lang2 = addWordsToLang(lang2, lang2_lines)
+    
+    print('Done creating languages')
     
     return pairs, lang1, lang2
 
 pairs, hindi_lang, english_lang = createLanguagesAndPairs(hindi_data_path, english_data_path, hindi_lang, english_lang)
 
+class EncoderRNN(nn.Module):
+    
+    def __init__(self, input_size, hidden_size):
+        super(EncoderRNN, self).__init__()
+        self.hidden_size = hidden_size
+        # The dimensions of the embedding is same as hidden size.
+        self.embedding = nn.Embedding(input_size, hidden_size)
+        self.gru = nn.GRU(hidden_size, hidden_size)
+        
+    def forward(self, input, hidden_state):
+        embedded = self.embedded(input).view(1, 1, -1)
+        output = embedded
+        output, hidden_state = self.gru(output, hidden_state)
+        return output, hidden_state
+    
+    def initHidden(self):
+        return torch.randn(1, 1, self.hidden_size, device=device)
+    
 
+        
+        
+        
