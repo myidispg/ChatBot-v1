@@ -89,7 +89,7 @@ class EncoderRNN(nn.Module):
         self.gru = nn.GRU(hidden_size, hidden_size)
         
     def forward(self, input, hidden_state):
-        embedded = self.embedded(input).view(1, 1, -1)
+        embedded = self.embedding(input).view(1, 1, -1)
         output = embedded
         output, hidden_state = self.gru(output, hidden_state)
         return output, hidden_state
@@ -132,9 +132,25 @@ def tensorFromPairs(pair):
     output_tensor = tensorFromSentence(english_lang, pair[1])
     return (input_tensor, output_tensor)
 
+# This section is for testing the outputs of the Encoder
 input_tensor, output_tensor = tensorFromPairs(pairs[0])
 
+HIDDEN_DIM = 256
+encoder = EncoderRNN(english_lang.n_words, HIDDEN_DIM).to(device)
+decoder = DecoderRNN(HIDDEN_DIM, hindi_lang.n_words).to(device)
 
+encoder_hidden = encoder.initHidden()
+
+encoder_optimizer = optim.SGD(encoder.parameters(), lr=0.01)
+decoder_optimizer = optim.SGD(decoder.parameters(), lr=0.01)
+
+encoder_optimizer.zero_grad()
+decoder_optimizer.zero_grad()
+
+encoder_output, encoder_hidden = encoder(input_tensor[0], encoder_hidden)
+
+
+#---------------------------------------------------------------------------
 def train(input_tensor, output_tensor, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length):
     encoder_hidden = encoder.initHidden()
     
