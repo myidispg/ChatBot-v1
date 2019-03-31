@@ -118,6 +118,38 @@ class DecoderRNN(nn.Module):
         return torch.randn(1, 1, self.hidden_size, device=device)
     
 
-        
+# --------TRAINING------------------
+def indexesFromSentence(lang, sentence):
+    return [lang.word2index[word] for word in sentence.split(' ')]
+    
+def tensorFromSentence(lang, sentence):
+    indexes = indexesFromSentence(lang, sentence)
+    indexes.append(EOS_token)
+    return torch.tensor(indexes, dtype=torch.long, device=device).view(-1, 1)
+
+def tensorFromPairs(pair):
+    input_tensor = tensorFromSentence(hindi_lang, pair[0])
+    output_tensor = tensorFromSentence(english_lang, pair[1])
+    return (input_tensor, output_tensor)
+
+input_tensor, output_tensor = tensorFromPairs(pairs[0])
+
+
+def train(input_tensor, output_tensor, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length):
+    encoder_hidden = encoder.initHidden()
+    
+    encoder_optimizer.zero_grad()
+    decoder_optimizer.zero_grad()
+    
+    input_length = input_tensor.shape[0]
+    output_length = output_tensor.shape[0]
+    
+    encoder_outputs = torch.zeros(max_length, encoder.hidden_size, device=device)
+
+    loss = 0
+
+    for ei in range(input_length):
+        encoder_output, encoder_hidden = encoder(input_tensor[ei], encoder_hidden)
+        encoder_outputs[ei] = encoder_output[0, 0]
         
         
