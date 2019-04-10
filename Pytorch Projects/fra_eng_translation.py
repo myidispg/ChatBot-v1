@@ -267,7 +267,8 @@ def train(input_tensor, output_tensor, encoder, decoder, encoder_optimizer, deco
     if use_teacher_forcing:
         for di in range(output_length):
             decoder_output, decoder_hidden, decoder_attention = decoder(decoder_input, decoder_hidden, encoder_outputs)
-            
+#            print(f'Decoder output: {decoder_output}, output_tensor[{di}]: {output_tensor[di]}')
+#            print(f'loss: {criterion(decoder_output, output_tensor[di])}')
             loss += criterion(decoder_output, output_tensor[di])
             decoder_input = output_tensor[di]  # Teacher forcing
     else:
@@ -413,7 +414,7 @@ encoder = EncoderRNN(input_lang.n_words, HIDDEN_DIM).to(device)
 attn_decoder = AttnDecoderRNN(HIDDEN_DIM, output_lang.n_words, dropout_p = 0.1).to(device)
 criterion = nn.NLLLoss()
 
-trainIters(encoder, attn_decoder, 75000, print_every=5000)
+trainIters(encoder, attn_decoder, 750, print_every=50)
 print(encoder.state_dict().keys())
 
 evaluateRandomly(encoder, attn_decoder)

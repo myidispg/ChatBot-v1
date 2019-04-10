@@ -180,6 +180,8 @@ def tensorsFromPair(pair):
     target_tensor = tensorFromSentence(output_lang, pair[1])
     return (input_tensor, target_tensor)  
 
+input_tensor, output_tensor = tensorsFromPair(pairs[1000])
+print(f'Input tensor- {input_tensor}\nOutput tensor- {output_tensor}')
 
 """
 “Teacher forcing” is the concept of using the real target outputs as each next input,
